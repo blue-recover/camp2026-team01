@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="ko" data-theme="ocean">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>우리 캠페인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b2545; --fg:#ffffff; --accent:#5bc0eb; --sub:#a8dadc;
+    --font:"맑은 고딕","Malgun Gothic",sans-serif;
+  }
+  [data-theme="ocean"] { --bg:#0b2545; --fg:#ffffff; --accent:#5bc0eb; --sub:#a8dadc; }
+  [data-theme="forest"]{ --bg:#14281d; --fg:#f4fff8; --accent:#7cb518; --sub:#c3e8bd; }
+  [data-theme="sunset"]{ --bg:#3d1e2e; --fg:#fff5e1; --accent:#ff8c42; --sub:#ffd9a0; }
+  [data-theme="night"] { --bg:#12121c; --fg:#f0f0ff; --accent:#9b8cff; --sub:#c9c4e8; }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font);overflow:hidden}
+  .slide{
+    position:absolute;inset:0;display:none;
+    flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:6vh 8vw;gap:2.4vh;
+  }
+  .slide.on{display:flex}
+  h1{font-size:7vh;line-height:1.25;color:#1393d6;font-family:"Jua","맑은 고딕","Malgun Gothic",sans-serif;
+    font-weight:700;letter-spacing:.02em;text-shadow:0 .3vh .8vh rgba(0,10,25,.45)}
+  h2{font-size:5vh;line-height:1.35;color:#1393d6;font-family:"Jua","맑은 고딕","Malgun Gothic",sans-serif;
+    font-weight:700;letter-spacing:.02em;text-shadow:0 .3vh .8vh rgba(0,10,25,.45)}
+  p,li{font-size:3.4vh;line-height:1.5;color:var(--fg);
+    -webkit-text-stroke:.1vh rgba(255,255,255,.9);
+    text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 10px rgba(0,0,0,.55)}
+  ul{text-align:left;max-width:80%}
+  li{margin:1vh 0}
+  .team{font-size:3vh;color:var(--sub);
+    -webkit-text-stroke:.1vh rgba(255,255,255,.9);
+    text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 10px rgba(0,0,0,.55)}
+  .bye{font-size:5vh;line-height:1.4;color:var(--fg);
+    -webkit-text-stroke:.12vh rgba(255,255,255,.9);
+    text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 10px rgba(0,0,0,.55)}
+  .media{max-width:70%;max-height:52vh;border-radius:1.6vh}
+  .hint{position:fixed;right:2vw;bottom:2vh;font-size:1.8vh;color:var(--sub);opacity:.7}
+  .page{position:fixed;left:2vw;bottom:2vh;font-size:1.8vh;color:var(--sub);opacity:.7}
+
+  /* 바다 배경 장식 : 물속 느낌 */
+  .sea-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+    background:radial-gradient(55% 42% at 72% 8%,rgba(91,192,235,.30),transparent 65%),
+               radial-gradient(48% 38% at 14% 18%,rgba(168,218,220,.18),transparent 65%),
+               linear-gradient(180deg,#0f5f96 0%,#0b3a63 48%,#071c33 100%);}
+  .slide{z-index:1}
+  .page,.hint{z-index:2}
+  .ray{position:absolute;top:-15%;left:10%;width:15vw;height:135%;
+    background:linear-gradient(180deg,rgba(255,255,255,.13),transparent 75%);
+    filter:blur(12px);transform:rotate(14deg);opacity:.45;
+    animation:raySway 11s ease-in-out infinite alternate}
+  .ray.r2{left:42%;animation-delay:-4s}
+  .ray.r3{left:72%;width:10vw;animation-delay:-8s}
+  @keyframes raySway{from{transform:rotate(10deg) translateX(-1vw)}to{transform:rotate(21deg) translateX(2vw)}}
+  .bubble{position:absolute;bottom:-9vh;border-radius:50%;
+    border:2px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);
+    opacity:0;animation:rise linear infinite}
+  @keyframes rise{0%{transform:translateY(0);opacity:0}8%{opacity:.6}100%{transform:translateY(-130vh);opacity:0}}
+  @media (prefers-reduced-motion: reduce){.ray,.bubble{animation:none;opacity:.12}}
+
+  /* 작은 사진 */
+  img.small{max-height:24vh;border-radius:1.6vh;
+    box-shadow:0 0 0 .5vh rgba(255,255,255,.12)}
+
+  /* 거북이 로봇 게임 */
+  .game-guide{font-size:2.6vh;color:var(--sub)}
+  #game-canvas{width:min(86vw,880px);height:auto;border-radius:2vh;
+    background:#062a44;box-shadow:0 1.5vh 4vh rgba(0,0,0,.45)}
+  .game-hud{font-size:2.8vh}
+  #game-score{color:var(--accent);font-size:3.4vh}
+  #game-reset{font:inherit;font-size:2.4vh;color:#062a44;background:var(--accent);
+    border:0;border-radius:1.2vh;padding:.8vh 1.8vh;cursor:pointer;margin-left:1vw}
+
+  /* 다친 물고기 구조 퀴즈 */
+  .quiz-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+    background:rgba(4,14,24,.78)}
+  .quiz-overlay.show{display:flex}
+  .quiz-card{background:linear-gradient(180deg,#0f4a6f,#0b2f4a);border:.5vh solid var(--accent);
+    border-radius:3vh;padding:4vh 4vw;max-width:80vw;text-align:center;
+    box-shadow:0 2vh 6vh rgba(0,0,0,.55)}
+  .quiz-q{font-size:3.6vh;font-weight:bold;color:#fff;line-height:1.4;margin-bottom:2.6vh}
+  .quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:1.8vh;max-width:60vw;margin:0 auto}
+  .quiz-btn{font:inherit;font-size:2.6vh;color:#fff;text-align:left;line-height:1.35;
+    background:rgba(168,218,220,.14);border:.3vh solid rgba(168,218,220,.55);
+    border-radius:1.6vh;padding:1.6vh 2vh;cursor:pointer}
+  .quiz-btn:hover{background:rgba(91,192,235,.32)}
+  .quiz-btn.right{background:#2e9e5b;border-color:#7ee0a4}
+  .quiz-btn.wrong{background:#c94f4f;border-color:#ffb0b0}
+  .quiz-btn:disabled{cursor:default}
+  .quiz-msg{font-size:2.6vh;color:#ffd166;margin-top:2vh;min-height:4vh}
+  .quiz-next{display:none;font:inherit;font-size:2.5vh;color:#062a44;background:var(--accent);
+    border:0;border-radius:1.2vh;padding:1vh 2.6vh;cursor:pointer;margin:2vh auto 0}
+  .quiz-next.show{display:inline-block}
+  .quiz-num{display:inline-block;min-width:4.5vh;text-align:center;margin-right:1vh;
+    background:rgba(255,255,255,.16);border-radius:1vh;padding:.2vh .6vh}
+
+  /* 시작 화면 · 리더보드 */
+  .big-btn{font:inherit;font-size:3.2vh;color:#062a44;background:var(--accent);
+    border:0;border-radius:1.6vh;padding:1.4vh 4vh;cursor:pointer;margin:1.5vh auto}
+  .big-btn:hover{filter:brightness(1.1)}
+  .nick-input{font:inherit;font-size:3vh;color:#062a44;text-align:center;
+    border:.4vh solid var(--accent);border-radius:1.4vh;padding:1.2vh 2vh;
+    width:min(60vw,40vh);background:#eaf6fc}
+  .nick-label{font-size:2.6vh;color:var(--sub);margin-top:1.5vh}
+  .board-box{width:min(78vw,64vh);max-height:78vh;overflow:auto;padding:3vh 3vw}
+  .board-row{display:flex;align-items:center;justify-content:space-between;
+    font-size:2.8vh;color:#fff;background:rgba(168,218,220,.10);
+    border:.3vh solid rgba(168,218,220,.25);border-radius:1.4vh;
+    padding:1.2vh 2vh;margin:1vh 0;gap:1vw}
+  .board-row .rank{font-weight:bold;min-width:7vh;text-align:center}
+  .board-row .name{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .board-row .pts{font-weight:bold;color:#ffd166;min-width:9vh;text-align:right}
+  .board-row.first{background:linear-gradient(90deg,#b8860b,#ffd166);color:#3a2c00;
+    border-color:#ffe9a8;font-size:3.2vh;box-shadow:0 .6vh 2vh rgba(255,209,102,.5)}
+  .board-row.first .pts{color:#5a4300}
+  .board-empty{font-size:2.6vh;color:var(--sub);margin:2vh 0}
+  .board-btns{display:flex;justify-content:center;gap:1.5vh;margin-top:2.5vh}
+  .board-btns .quiz-next{margin:0}
+  #start-step2 .nick-input{display:block;margin:1.5vh auto}
+  #start-box .quiz-msg,#board-box .quiz-msg{margin-bottom:1.5vh}
+  .nick-input{outline:none}
+  .nick-input:focus{border-color:#ffd166}
+</style>
+</head>
+<body>
+
+<!-- 바다 배경 (모든 장 뒤에 깔리는 물결과 거품) -->
+<div class="sea-bg" aria-hidden="true">
+  <div class="ray"></div>
+  <div class="ray r2"></div>
+  <div class="ray r3"></div>
+  <span class="bubble" style="left:5%;width:3vh;height:3vh;animation-duration:9s"></span>
+  <span class="bubble" style="left:15%;width:1.8vh;height:1.8vh;animation-duration:7s;animation-delay:2s"></span>
+  <span class="bubble" style="left:27%;width:2.6vh;height:2.6vh;animation-duration:11s;animation-delay:4s"></span>
+  <span class="bubble" style="left:44%;width:1.6vh;height:1.6vh;animation-duration:8s;animation-delay:1s"></span>
+  <span class="bubble" style="left:58%;width:3.2vh;height:3.2vh;animation-duration:10s;animation-delay:6s"></span>
+  <span class="bubble" style="left:72%;width:2vh;height:2vh;animation-duration:7.5s;animation-delay:3s"></span>
+  <span class="bubble" style="left:86%;width:2.8vh;height:2.8vh;animation-duration:9.5s;animation-delay:5s"></span>
+  <span class="bubble" style="left:93%;width:1.5vh;height:1.5vh;animation-duration:8.5s;animation-delay:7s"></span>
+</div>
+
+<!-- 1. 표지 : 캠페인 이름과 팀 소개 -->
+<section class="slide on" style="background:linear-gradient(rgba(8,24,43,.55),rgba(8,24,43,.75)),url('assets/그림-4.jpg') center/cover">
+  <h1>거북이 로봇, 바다를 지켜요!</h1>
+  <p class="team">01조 블루 리커버 · 바다 쓰레기 수거 캠페인</p>
+</section>
+
+<!-- 2. 목차 : 오늘 발표할 내용 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.55),rgba(8,24,43,.75)),url('assets/그림-13.jpg') center/cover">
+  <h2>오늘 발표할 내용</h2>
+  <ul>
+    <li>우리가 찾은 문제</li>
+    <li>우리의 질문</li>
+    <li>우리의 캠페인: 거북이 로봇</li>
+    <li>거북이 로봇 상상 영상</li>
+    <li>직접 해 봐요! 거북이 로봇 게임</li>
+    <li>이렇게 실천해요</li>
+  </ul>
+</section>
+
+<!-- 3. 우리가 찾은 문제 : 바다 플라스틱 쓰레기 문제 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-5.jpg') center/cover">
+  <h2>우리가 찾은 문제</h2>
+  <p>플라스틱 사용이 대중화되면서 길가에 쓰레기를 버리는 경우가 생겨요.</p>
+  <p>이렇게 쌓이고 쌓인 쓰레기는 바다로 흘러가서 바다의 생물들이 위협을 받아요.</p>
+</section>
+
+<!-- 4. 우리의 질문 : How Might We 질문 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-6.jpg') center/cover">
+  <h2>우리의 질문</h2>
+  <p>우리는 어떻게 이런 쓰레기 문제를 해결할 수 있을까요?</p>
+</section>
+
+<!-- 5. 우리의 캠페인 ① : 쓰레기를 모으고 분리 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/사진-1.jpg') center/cover">
+  <h2>우리의 캠페인: 거북이 로봇 ①</h2>
+  <p>바다를 헤엄치며 해양 쓰레기를 입으로 모아요.</p>
+  <p>입으로 모인 쓰레기는 로봇의 몸속으로 들어가서 필터를 통해 분리해요.</p>
+</section>
+
+<!-- 6. 우리의 캠페인 ② : 내려가고 올라오는 방법 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-12.jpg') center/cover">
+  <h2>우리의 캠페인: 거북이 로봇 ②</h2>
+  <p>사람이 풀어주면 거북이 로봇이 수면 아래로 내려가요.</p>
+  <p>반대로 수면 위로 올라갈 때는 앞다리를 움직여서 올라와요.</p>
+</section>
+
+<!-- 7. 우리의 캠페인 ③ : 연잎 원리로 방수 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-11.jpg') center/cover">
+  <h2>우리의 캠페인: 거북이 로봇 ③</h2>
+  <p>거북이 로봇의 소재는 연잎의 원리인 방수 기능을 모방해서 친환경적으로 방수가 돼요.</p>
+</section>
+
+<!-- 8. 거북이 로봇 상상 영상 : 바다를 청소하는 모습 -->
+<section class="slide">
+  <h2>거북이 로봇 상상 영상</h2>
+  <img class="media" src="assets/영상-1.gif" alt="바다를 청소하는 거북이 로봇 상상 영상">
+  <p>우리가 상상한 거북이 로봇이 바다를 청소하는 모습이에요.</p>
+</section>
+
+<!-- 9. 직접 해 봐요 : 거북이 로봇 조종 게임 -->
+<section class="slide" id="game-slide">
+  <h2>직접 해 봐요! 거북이 로봇 게임</h2>
+  <p class="game-guide">위 ▲ 아래 ▼ 키로 거북이 로봇을 움직여 쓰레기를 주우세요! 4초마다 나타나는 다친 물고기를 만나 문제를 풀어 구해 주세요!</p>
+  <canvas id="game-canvas" width="900" height="500"></canvas>
+  <p class="game-hud">주운 쓰레기: <b id="game-score">0</b>개 &nbsp; <button id="game-reset">다시 시작</button></p>
+</section>
+
+<!-- 다친 물고기 구조 퀴즈 창 -->
+<div id="quiz-box" class="quiz-overlay">
+  <div class="quiz-card">
+    <p class="quiz-q" id="quiz-q">문제</p>
+    <div class="quiz-opts" id="quiz-opts"></div>
+    <p class="quiz-msg" id="quiz-msg"></p>
+    <button class="quiz-next" id="quiz-next" type="button">계속하기</button>
+  </div>
+</div>
+
+<!-- 게임 시작 창 (닉네임 입력) -->
+<div id="start-box" class="quiz-overlay">
+  <div class="quiz-card">
+    <p class="quiz-q">거북이 로봇 게임</p>
+    <p class="quiz-msg">위 ▲ 아래 ▼ 키로 움직여 쓰레기를 주우고<br>다친 물고기를 구해 주세요!</p>
+    <div id="start-step1">
+      <button class="big-btn" id="start-go" type="button">시작</button>
+    </div>
+    <div id="start-step2" style="display:none">
+      <label class="nick-label" for="nick-input">닉네임을 입력하고 시작 버튼을 눌러 주세요!</label>
+      <input class="nick-input" id="nick-input" type="text" maxlength="8" placeholder="닉네임" autocomplete="off">
+      <button class="big-btn" id="start-begin" type="button">게임 시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- 리더보드 창 -->
+<div id="board-box" class="quiz-overlay">
+  <div class="quiz-card board-box">
+    <p class="quiz-q">리더보드</p>
+    <p class="quiz-msg" id="board-msg"></p>
+    <div id="board-list"></div>
+    <div class="board-btns">
+      <button class="quiz-next show" id="board-again" type="button">다시 하기</button>
+      <button class="quiz-next show" id="board-close" type="button">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 10. 이렇게 실천해요 ① : 우리도 함께 줄이기 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-9.jpg') center/cover">
+  <h2>이렇게 실천해요 ①</h2>
+  <p>로봇에 의존하지 않고 우리도 플라스틱을 줄여야 바다가 더 깨끗해질 수 있어요.</p>
+  <p>바다에 버려진 쓰레기를 줍는 것도 하나의 방법이에요.</p>
+</section>
+
+<!-- 11. 이렇게 실천해요 ② : 플라스틱 줄이고 분리수거 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-7.jpg') center/cover">
+  <h2>이렇게 실천해요 ②</h2>
+  <p>마지막으로 플라스틱을 줄이고 분리수거를 해야 해요.</p>
+  <p>플라스틱을 줄이는 방법 중에는 텀블러, 즉 다회용기를 사용하는 방법도 있어요.</p>
+</section>
+
+<!-- 12. 우리 팀 : 마무리 인사 -->
+<section class="slide" style="background:linear-gradient(rgba(8,24,43,.6),rgba(8,24,43,.78)),url('assets/그림-8.jpg') center/cover">
+  <h2>우리 팀</h2>
+  <p class="team">01조 블루 리커버</p>
+  <p class="bye">들어 주셔서 고맙습니다!</p>
+</section>
+
+<!-- 여기에 친구들 슬라이드가 들어갑니다 (합쳐줘 를 쓰면 아래에 채워져요) -->
+
+<div class="page"><span id="now">1</span> / <span id="all">7</span></div>
+<div class="hint">← → 눌러서 넘기기</div>
+
+<!-- 움직임 라이브러리. 없어도 발표자료는 그대로 보인다 -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script>
+(function(){
+  var slides = document.querySelectorAll('.slide');
+  var i = 0;
+  var pageAll = document.getElementById('all');
+  if (pageAll) pageAll.textContent = slides.length;
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function 무조건보이기(items){
+    for (var k = 0; k < items.length; k++) {
+      items[k].style.opacity = '';
+      items[k].style.transform = '';
+      items[k].style.translate = '';
+      items[k].style.rotate = '';
+      items[k].style.scale = '';
+    }
+  }
+
+  function animateIn(slide){
+    var items = slide.children;
+    if (reduceMotion || !window.gsap || document.hidden) {
+      무조건보이기(items);
+      return;
+    }
+    gsap.killTweensOf(items);
+    gsap.fromTo(items,
+      { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, stagger: 0.08, ease: 'power2.out', clearProps: 'all' }
+    );
+    clearTimeout(slide.__safety);
+    slide.__safety = setTimeout(function(){
+      if (items.length && getComputedStyle(items[0]).opacity !== '1') {
+        gsap.killTweensOf(items);
+        무조건보이기(items);
+      }
+    }, 1200);
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) { animateIn(slides[i]); }
+  });
+
+  function show(n){
+    if (n < 0) n = 0;
+    if (n > slides.length - 1) n = slides.length - 1;
+    slides[i].classList.remove('on');
+    i = n;
+    slides[i].classList.add('on');
+    var nowEl = document.getElementById('now');
+    if (nowEl) nowEl.textContent = i + 1;
+    animateIn(slides[i]);
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { show(i+1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')                   { show(i-1); }
+    if (e.key === 'Home') { show(0); }
+    if (e.key === 'End')  { show(slides.length-1); }
+  });
+  document.addEventListener('click', function(e){
+    show(e.clientX < window.innerWidth/3 ? i-1 : i+1);
+  });
+
+  if (document.readyState === 'complete') { animateIn(slides[0]); }
+  else { window.addEventListener('load', function(){ animateIn(slides[0]); }); }
+})();
+</script>
+
+<script>
+(function(){
+  var canvas = document.getElementById('game-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var slide = document.getElementById('game-slide');
+  var scoreEl = document.getElementById('game-score');
+  var resetBtn = document.getElementById('game-reset');
+  var guide = document.querySelector('.game-guide');
+
+  // 시작 창
+  var startBox = document.getElementById('start-box');
+  var startGo = document.getElementById('start-go');
+  var startStep1 = document.getElementById('start-step1');
+  var startStep2 = document.getElementById('start-step2');
+  var nickInput = document.getElementById('nick-input');
+  var startBegin = document.getElementById('start-begin');
+
+  // 리더보드 창
+  var boardBox = document.getElementById('board-box');
+  var boardMsg = document.getElementById('board-msg');
+  var boardList = document.getElementById('board-list');
+  var boardAgain = document.getElementById('board-again');
+  var boardClose = document.getElementById('board-close');
+
+  // 퀴즈 창
+  var quizBox = document.getElementById('quiz-box');
+  var quizQ = document.getElementById('quiz-q');
+  var quizOpts = document.getElementById('quiz-opts');
+  var quizMsg = document.getElementById('quiz-msg');
+  var quizNext = document.getElementById('quiz-next');
+
+  // 거북이 로봇 그림. 준비되면 게임 속 로봇으로 쓴다.
+  var turtleImg = new Image();
+  turtleImg.src = 'assets/그림-3.jpg';
+
+  var keys = {};
+  document.addEventListener('keydown', function(e){
+    var k = e.key.toLowerCase();
+    if (k === 'arrowup' || k === 'w') { keys['up'] = true; e.preventDefault(); }
+    if (k === 'arrowdown' || k === 's') { keys['down'] = true; e.preventDefault(); }
+  });
+  document.addEventListener('keyup', function(e){
+    var k = e.key.toLowerCase();
+    if (k === 'arrowup' || k === 'w') keys['up'] = false;
+    if (k === 'arrowdown' || k === 's') keys['down'] = false;
+  });
+
+  // 클릭해도 장이 넘어가지 않게 한다
+  function stopClick(el){ if (el) el.addEventListener('click', function(e){ e.stopPropagation(); }); }
+  stopClick(canvas); stopClick(startBox); stopClick(boardBox); stopClick(quizBox);
+  if (slide) slide.addEventListener('click', function(e){
+    if (playing || startOpen || boardOpen || quizOpen) e.stopPropagation();
+  });
+
+  // 시작 창 단계 1 → 단계 2
+  if (resetBtn) resetBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    hideOverlays();
+    showStartStep();
+  });
+  if (startGo) startGo.addEventListener('click', function(e){
+    e.stopPropagation();
+    startStep1.style.display = 'none';
+    startStep2.style.display = 'block';
+    var saved = getNick();
+    nickInput.value = saved || '';
+    nickInput.focus();
+  });
+  if (startBegin) startBegin.addEventListener('click', function(e){
+    e.stopPropagation();
+    beginGame();
+  });
+  if (nickInput) nickInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); beginGame(); }
+  });
+
+  // 게임 시작
+  function beginGame(){
+    var nick = (nickInput && nickInput.value.trim()) || '바다지킴이';
+    if (nick.length > 8) nick = nick.slice(0, 8);
+    currentNick = nick;
+    saveNick(nick);
+    hideOverlays();
+    startRound();
+  }
+
+  // 리더보드 버튼
+  if (boardAgain) boardAgain.addEventListener('click', function(e){
+    e.stopPropagation();
+    boardBox.classList.remove('show'); boardOpen = false;
+    showStartStep();
+  });
+  if (boardClose) boardClose.addEventListener('click', function(e){
+    e.stopPropagation();
+    hideOverlays();
+  });
+
+  // 퀴즈 계속 버튼
+  if (quizNext) quizNext.addEventListener('click', function(e){
+    e.stopPropagation();
+    closeQuiz();
+  });
+
+  // ---------- 퀴즈 문제 모음 (바다 환경 + 실천) ----------
+  var bank = [
+    { q:'플라스틱은 바다에서 썩는 데 얼마나 걸릴까요?',
+      opts:['1년','10년','100년 이상','1주일'], a:2 },
+    { q:'바다 플로깅이란 무엇일까요?',
+      opts:['해변에서 걸으며 쓰레기 줍기','바다에서 수영하기','낚시하기','보트 타기'], a:0 },
+    { q:'쓰레기를 줄이려면 무엇이 좋을까요?',
+      opts:['일회용 컵 사용','텀블러 사용','비닐봉지 많이 쓰기','물건 많이 사기'], a:1 },
+    { q:'우리 거북이 로봇은 무엇을 할까요?',
+      opts:['물고기를 잡아요','쓰레기를 몸속에 저장해 분리수거해요','모래를 파요','바다에 쓰레기를 버려요'], a:1 },
+    { q:'바닷가의 쓰레기가 생물에게 어떤 영향을 줄까요?',
+      opts:['아무 영향이 없어요','삼키거나 걸려 다칠 수 있어요','집이 생겨 좋아요','더 튼튼해져요'], a:1 },
+    { q:'올바른 분리수거 방법은 무엇일까요?',
+      opts:['모두 한 봉투에 넣기','종류별로 나눠서 버리기','아무 데나 버리기','불에 태우기'], a:1 },
+    { q:'바다 생물을 지키는 실천은 무엇일까요?',
+      opts:['해변 정화 활동에 참여하기','쓰레기를 바다에 버리기','물을 낭비하기','플라스틱을 많이 쓰기'], a:0 },
+    { q:'플라스틱 빨대 대신 무엇을 쓸 수 있을까요?',
+      opts:['금속이나 종이 빨대','또 다른 플라스틱 빨대','아무것도 안 씀','상관없음'], a:0 },
+    { q:'거북이 로봇이 주운 쓰레기는 어떻게 될까요?',
+      opts:['다시 바다로 돌아가요','몸속에 모아 땅에서 분리수거돼요','물고기가 먹어요','그냥 사라져요'], a:1 },
+    { q:'바다를 지키기 위해 오늘부터 할 수 있는 일은?',
+      opts:['쓰레기를 줍고 분리수거하기','아무것도 안 하기','쓰레기를 더 버리기','플라스틱 많이 쓰기'], a:0 }
+  ];
+  var usedIdx = [];
+
+  function pickQuestion(){
+    if (usedIdx.length >= bank.length) usedIdx = [];
+    var n;
+    do { n = Math.floor(Math.random() * bank.length); }
+    while (usedIdx.indexOf(n) !== -1);
+    usedIdx.push(n);
+    return bank[n];
+  }
+
+  function openQuiz(){
+    quizOpen = true;
+    var item = pickQuestion();
+    currentQ = item;
+    answered = false;
+    quizQ.textContent = item.q;
+    quizOpts.innerHTML = '';
+    var nums = ['①','②','③','④'];
+    for (var i = 0; i < item.opts.length; i++){
+      (function(idx){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'quiz-btn';
+        b.innerHTML = '<span class="quiz-num">' + nums[idx] + '</span>' + item.opts[idx];
+        b.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          pickOption(idx);
+        });
+        quizOpts.appendChild(b);
+      })(i);
+    }
+    quizMsg.textContent = '';
+    quizNext.classList.remove('show');
+    quizBox.classList.add('show');
+  }
+
+  function pickOption(i){
+    if (answered || !currentQ) return;
+    answered = true;
+    var btns = quizOpts.querySelectorAll('.quiz-btn');
+    for (var k = 0; k < btns.length; k++) btns[k].disabled = true;
+    if (i === currentQ.a){
+      btns[i].classList.add('right');
+      hearts = Math.min(3, hearts + 1);
+      quizMsg.textContent = '정답! 물고기를 구했어요! (하트 +1)';
+    } else {
+      btns[i].classList.add('wrong');
+      btns[currentQ.a].classList.add('right');
+      hearts -= 1;
+      quizMsg.textContent = '아쉬워요! 정답은 ' + (currentQ.a + 1) + '번이에요. 하트를 1개 잃었어요.';
+    }
+    quizNext.classList.add('show');
+    if (scoreEl) scoreEl.textContent = score;
+  }
+
+  function closeQuiz(){
+    quizBox.classList.remove('show');
+    quizOpen = false;
+    answered = false;
+    if (hearts <= 0){
+      hearts = 0;
+      endGame();
+    }
+  }
+
+  // ---------- 상태 ----------
+  var player = { x: 150, y: H/2, size: 46, spd: 260, r: 30, vy: 0 };
+  var items = [];
+  var fishes = [];
+  var bubbles = [];
+  var pops = [];
+  var hurtFish = null;
+  var score = 0, hearts = 3, timeLeft = 30;
+  var playing = false, finished = false;
+  var needStart = true;
+  var invincible = 0, spawnT = 0, hurtT = 4, hurtColorIdx = 0;
+  var quizOpen = false, answered = false, currentQ = null;
+  var startOpen = false, boardOpen = false;
+  var currentNick = '바다지킴이';
+  var hurtColors = ['#e0523d', '#9aa5ad', '#f5c542'];
+
+  // ---------- 저장 (닉네임 · 리더보드) ----------
+  var STORE = {};
+  try { STORE = window.localStorage || {}; } catch(e){ STORE = {}; }
+  function sGet(key){
+    try { return STORE.getItem ? STORE.getItem(key) : STORE[key]; } catch(e){ return STORE[key]; }
+  }
+  function sSet(key, val){
+    try { if (STORE.setItem) STORE.setItem(key, val); else STORE[key] = val; }
+    catch(e){ STORE[key] = val; }
+  }
+  function getNick(){ return sGet('br_nick') || ''; }
+  function saveNick(n){ sSet('br_nick', n); }
+  function loadBoard(){
+    try {
+      var raw = sGet('br_board');
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch(e){ return []; }
+  }
+  function saveBoard(arr){ sSet('br_board', JSON.stringify(arr)); }
+
+  // 게임이 끝나면: 점수 등록 + 리더보드 띄우기
+  function endGame(){
+    if (finished) return;
+    finished = true; playing = false;
+    var arr = loadBoard();
+    // 이미 5명이 있으면 다음 게임(지금)에서 리더보드를 초기화
+    if (arr.length >= 5) arr = [];
+    arr.push({ name: currentNick, score: score });
+    arr.sort(function(a, b){ return b.score - a.score; });
+    if (arr.length > 5) arr = arr.slice(0, 5);
+    saveBoard(arr);
+    showBoard(arr);
+  }
+
+  function showBoard(arr){
+    if (boardMsg) boardMsg.textContent = currentNick + '님은 ' + score + '개의 쓰레기를 주웠어요!';
+    boardList.innerHTML = '';
+    if (!arr || arr.length === 0){
+      boardList.innerHTML = '<p class="board-empty">아직 기록이 없어요! 첫 번째 기록이에요!</p>';
+    } else {
+      var medals = ['1', '2', '3', '4', '5'];
+      for (var i = 0; i < arr.length; i++){
+        var row = document.createElement('div');
+        row.className = 'board-row' + (i === 0 ? ' first' : '');
+        row.innerHTML = '<span class="rank">' + (i === 0 ? '👑 ' : '') + medals[i] + '등</span>' +
+                        '<span class="name">' + escapeHtml(arr[i].name) + '</span>' +
+                        '<span class="pts">' + arr[i].score + '개</span>';
+        boardList.appendChild(row);
+      }
+    }
+    boardBox.classList.add('show');
+    boardOpen = true;
+  }
+  function escapeHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function hideOverlays(){
+    if (startBox) startBox.classList.remove('show'); startOpen = false;
+    if (boardBox) boardBox.classList.remove('show'); boardOpen = false;
+    if (quizBox) quizBox.classList.remove('show'); quizOpen = false;
+  }
+
+  // 시작 창을 다시 보여준다 (단계 1부터)
+  function showStartStep(){
+    startStep1.style.display = 'block';
+    startStep2.style.display = 'none';
+    startBox.classList.add('show');
+    startOpen = true;
+  }
+
+  function makeTrashItem(){
+    return {
+      x: W + 30,
+      y: 45 + Math.random()*(H-90),
+      kind: ['bottle','can','bag'][Math.floor(Math.random()*3)],
+      r: 22,
+      vx: -1 * (150 + Math.random()*130),
+      spin: (Math.random()-0.5)*3,
+      ang: Math.random()*Math.PI*2,
+      bob: Math.random()*Math.PI*2
+    };
+  }
+  function makeFish(){
+    return {
+      x: Math.random()*W, y: Math.random()*H,
+      vx: -0.6 - Math.random()*0.7,
+      bob: Math.random()*Math.PI*2,
+      r: 8 + Math.random()*6, c: Math.random() < 0.5
+    };
+  }
+  function makeBubble(){
+    return { x: Math.random()*W, y: H + 10, r: 2+Math.random()*5, s: 8+Math.random()*20 };
+  }
+  function makeHurtFish(){
+    var c = hurtColors[hurtColorIdx % 3];
+    hurtColorIdx++;
+    return {
+      x: W + 40,
+      y: 60 + Math.random()*(H-120),
+      r: 26,
+      col: c,
+      vx: -1 * (190 + Math.random()*60),
+      bob: Math.random()*Math.PI*2,
+      ang: 0.1
+    };
+  }
+  function drawHeart(x, y, s, full){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    ctx.moveTo(0, s*0.35);
+    ctx.bezierCurveTo(-s, -s*0.4, -s*0.45, -s*0.9, 0, -s*0.2);
+    ctx.bezierCurveTo(s*0.45, -s*0.9, s, -s*0.4, 0, s*0.35);
+    ctx.closePath();
+    if (full){
+      ctx.fillStyle = '#ff6b8a';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.7)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,.45)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function startRound(){
+    score = 0; hearts = 3; timeLeft = 30;
+    items = []; pops = []; hurtFish = null;
+    player.x = 150; player.y = H/2;
+    invincible = 0; spawnT = 0.4; hurtT = 4; hurtColorIdx = 0;
+    playing = true; finished = false; needStart = false;
+    quizOpen = false; answered = false;
+    if (scoreEl) scoreEl.textContent = '0';
+  }
+
+  // 처음 준비
+  for (var f = 0; f < 7; f++) fishes.push(makeFish());
+  for (var b = 0; b < 18; b++) bubbles.push(makeBubble());
+
+  function rrect(x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  function drawOcean(t){
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0e5f96');
+    g.addColorStop(0.55, '#0b3a63');
+    g.addColorStop(1, '#062a44');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = 'rgba(120,150,170,0.20)';
+    ctx.beginPath();
+    ctx.ellipse(70, H+20, 130, 60, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(W-60, H+30, 160, 70, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = '#a8dadc';
+    ctx.beginPath();
+    ctx.moveTo(120, 0); ctx.lineTo(70, 0); ctx.lineTo(260, H); ctx.lineTo(340, H);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(620, 0); ctx.lineTo(570, 0); ctx.lineTo(760, H); ctx.lineTo(840, H);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHurtFish(it, t){
+    ctx.save();
+    ctx.translate(it.x, it.y);
+    ctx.scale(-1, 1);
+    ctx.rotate(Math.sin(t + it.bob) * 0.15);
+    ctx.fillStyle = it.col || '#9db8c9';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, it.r*1.7, it.r, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(it.r*1.4, 0);
+    ctx.lineTo(it.r*2.5, -it.r*0.8);
+    ctx.lineTo(it.r*2.5, it.r*0.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-it.r*0.3, -it.r*0.6);
+    ctx.lineTo(-it.r*0.9, -it.r*1.4);
+    ctx.lineTo(it.r*0.2, -it.r*0.9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-it.r*0.5, -it.r*0.25, it.r*0.22, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#1f3a4d';
+    ctx.beginPath();
+    ctx.arc(-it.r*0.5, -it.r*0.25, it.r*0.11, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#1f3a4d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-it.r*0.75, -it.r*0.6);
+    ctx.quadraticCurveTo(-it.r*0.5, -it.r*0.75, -it.r*0.28, -it.r*0.62);
+    ctx.stroke();
+    ctx.fillStyle = '#f2e9d0';
+    ctx.save();
+    ctx.translate(it.r*0.4, it.r*0.15);
+    ctx.rotate(0.6);
+    ctx.fillRect(-it.r*0.55, -it.r*0.18, it.r*1.1, it.r*0.36);
+    ctx.rotate(1.57 - 0.6);
+    ctx.fillRect(-it.r*0.55, -it.r*0.18, it.r*1.1, it.r*0.36);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,209,102,' + (0.6 + 0.4*Math.sin(t*6)) + ')';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, -it.r*1.7, 5, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawTrash(it, t){
+    var sway = Math.sin(t*2 + it.bob) * 0.2;
+    ctx.save();
+    ctx.translate(it.x, it.y);
+    ctx.rotate(sway + it.ang*0.2);
+    if (it.kind === 'bottle'){
+      ctx.fillStyle = '#dff3ff';
+      rrect(-9, -16, 18, 30, 5); ctx.fill();
+      ctx.fillStyle = '#5bc0eb';
+      ctx.fillRect(-5, -22, 10, 8);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillRect(-6, -10, 4, 14);
+    } else if (it.kind === 'can'){
+      ctx.fillStyle = '#c9d8e0';
+      rrect(-9, -14, 18, 28, 4); ctx.fill();
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillRect(-9, -2, 18, 6);
+      ctx.fillStyle = '#e2eef5';
+      ctx.fillRect(-5, 8, 10, 3);
+    } else {
+      ctx.fillStyle = 'rgba(230,240,245,0.65)';
+      ctx.beginPath();
+      ctx.moveTo(-4, -12);
+      ctx.quadraticCurveTo(-14, 2, -8, 16);
+      ctx.lineTo(8, 16);
+      ctx.quadraticCurveTo(14, 2, 4, -12);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawFish(f, t){
+    ctx.save();
+    var y = f.y + Math.sin(t*2 + f.bob)*8;
+    ctx.translate(f.x, y);
+    ctx.scale(-1, 1);
+    ctx.fillStyle = f.c ? '#ffb27a' : '#ffd97a';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, f.r*1.6, f.r, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(f.r*1.5, 0);
+    ctx.lineTo(f.r*2.6, -f.r*0.9);
+    ctx.lineTo(f.r*2.6, f.r*0.9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#2b2b2b';
+    ctx.beginPath();
+    ctx.arc(f.r*0.7, -f.r*0.2, f.r*0.18, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawPlayer(t){
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    var bob = Math.sin(t*4) * 2;
+    ctx.translate(0, bob);
+    ctx.rotate(Math.max(-0.25, Math.min(0.25, player.vy * 0.002)));
+    if (invincible > 0 && Math.floor(t*12) % 2 === 0) ctx.globalAlpha = 0.45;
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, player.size*0.85, player.size*0.7, 7, 0, 0, Math.PI*2);
+    ctx.fill();
+    if (turtleImg.complete && turtleImg.naturalWidth > 0){
+      var dw = player.size*2.0;
+      var iw = turtleImg.naturalWidth, ih = turtleImg.naturalHeight;
+      var s = Math.max(dw/iw, dw/ih);
+      var sw = iw*s, sh = ih*s;
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.beginPath();
+      ctx.arc(0, -4, player.size*1.02, 0, Math.PI*2);
+      ctx.fill();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, -4, player.size*0.92, 0, Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(turtleImg, -sw/2, -4-sh/2, sw, sh);
+      ctx.restore();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, -4, player.size*0.92, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.strokeStyle = '#5bc0eb';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, -4, player.size*1.02, 0, Math.PI*2);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = '#48b879';
+      ctx.beginPath();
+      ctx.arc(0, 0, player.size*0.85, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(-player.size*0.28, -4, 8, 0, Math.PI*2);
+      ctx.arc(player.size*0.28, -4, 8, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#0b2545';
+      ctx.beginPath();
+      ctx.arc(-player.size*0.28, -4, 3.5, 0, Math.PI*2);
+      ctx.arc(player.size*0.28, -4, 3.5, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawHud(){
+    ctx.fillStyle = 'rgba(4,20,35,0.6)';
+    rrect(10, 8, 210, 46, 12); ctx.fill();
+    ctx.fillStyle = '#a8dadc';
+    ctx.font = 'bold 20px "Malgun Gothic", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('주운 쓰레기', 24, 27);
+    ctx.fillStyle = '#ffd166';
+    ctx.font = 'bold 26px "Malgun Gothic", sans-serif';
+    ctx.fillText(score + '개', 24, 52);
+
+    var hx = W/2 - 60;
+    for (var i = 0; i < 3; i++){
+      drawHeart(hx + i*60, 32, 22, i < hearts);
+    }
+
+    ctx.fillStyle = 'rgba(4,20,35,0.6)';
+    rrect(W-190, 8, 180, 46, 12); ctx.fill();
+    ctx.fillStyle = '#a8dadc';
+    ctx.font = 'bold 20px "Malgun Gothic", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.max(0, Math.ceil(timeLeft)) + '초', W-20, 40);
+  }
+
+  var prev = 0;
+  function step(tm){
+    requestAnimationFrame(step);
+    var dt = Math.min((tm - prev) / 1000, 0.05);
+    prev = tm;
+    var isOn = slide && slide.classList.contains('on');
+    // 이 장에 들어왔을 때 시작 창을 띄운다
+    if (isOn && needStart && !playing && !finished){
+      needStart = false;
+      showStartStep();
+    }
+    if (!isOn){ needStart = true; hideOverlays(); }
+
+    if (isOn && playing && !quizOpen){
+      timeLeft -= dt;
+      if (invincible > 0) invincible -= dt;
+      var dy = 0;
+      if (keys['up']) dy -= 1;
+      if (keys['down']) dy += 1;
+      player.vy = dy * player.spd;
+      player.y += player.vy * dt;
+      player.y = Math.max(55, Math.min(H-55, player.y));
+      player.x = 150;
+
+      spawnT -= dt;
+      if (spawnT <= 0){
+        items.push(makeTrashItem());
+        spawnT = Math.max(0.3, 0.8 - (30 - timeLeft) * 0.02) * (0.6 + Math.random()*0.8);
+      }
+
+      if (!hurtFish){
+        hurtT -= dt;
+        if (hurtT <= 0){
+          hurtFish = makeHurtFish();
+          hurtT = 4;
+        }
+      }
+
+      for (var i = items.length - 1; i >= 0; i--){
+        var it = items[i];
+        it.x += it.vx * dt;
+        it.ang += it.spin * dt;
+        it.y += Math.sin(tm*0.003 + it.bob) * 0.6;
+        if (it.x < -50 || it.x > W + 50){ items.splice(i, 1); continue; }
+        var d = Math.hypot(it.x - player.x, it.y - player.y);
+        if (d < it.r + player.r){
+          score++;
+          pops.push({ x: it.x, y: it.y, a: 1, r: it.r, col: '255,255,255' });
+          items.splice(i, 1);
+        }
+      }
+
+      if (hurtFish){
+        hurtFish.x += hurtFish.vx * dt;
+        hurtFish.y += Math.sin(tm*0.002 + hurtFish.bob) * 0.5;
+        if (hurtFish.x < -60){ hurtFish = null; }
+        else {
+          var hd = Math.hypot(hurtFish.x - player.x, hurtFish.y - player.y);
+          if (hd < hurtFish.r + player.r){
+            hurtFish = null;
+            openQuiz();
+          }
+        }
+      }
+
+      if (timeLeft <= 0){
+        timeLeft = 0;
+        endGame();
+      }
+    }
+
+    var t = tm / 1000;
+    for (var j = 0; j < fishes.length; j++){
+      fishes[j].x += fishes[j].vx * 60 * dt * (isOn ? 1 : 0.4);
+      if (fishes[j].x < -40){ fishes[j].x = W + 40; }
+    }
+    for (var k = 0; k < bubbles.length; k++){
+      bubbles[k].y -= bubbles[k].s * 0.6;
+      if (bubbles[k].y < -15){ bubbles[k].y = H + 10; bubbles[k].x = Math.random()*W; }
+    }
+    for (var p = pops.length - 1; p >= 0; p--){
+      pops[p].a -= dt * 2.2;
+      if (pops[p].a <= 0) pops.splice(p, 1);
+    }
+
+    drawOcean(t);
+    for (var fi = 0; fi < fishes.length; fi++) drawFish(fishes[fi], t);
+    if (hurtFish) drawHurtFish(hurtFish, t);
+    for (var it2 = 0; it2 < items.length; it2++) drawTrash(items[it2], t);
+    for (var pp = 0; pp < pops.length; pp++){
+      ctx.strokeStyle = 'rgba(' + pops[pp].col + ',' + pops[pp].a + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(pops[pp].x, pops[pp].y, pops[pp].r * (1.5 - pops[pp].a), 0, Math.PI*2);
+      ctx.stroke();
+    }
+    drawPlayer(t);
+    drawHud();
+    if (scoreEl) scoreEl.textContent = score;
+  }
+
+  requestAnimationFrame(step);
+})();
+
+</script>
+</body>
+</html>
